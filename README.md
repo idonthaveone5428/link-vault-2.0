@@ -4,4 +4,4 @@
 <img width="1080" height="2400" alt="1925" src="https://github.com/user-attachments/assets/cc5b83be-b0a9-4312-a6b3-cb19e27d56f2" />
 <img width="1080" height="2400" alt="1924" src="https://github.com/user-attachments/assets/2c4b5b48-4c7a-47e5-be2a-cd874129fccc" />
 It's a very simple app , Where can you just share a link annnd it'll save it.
-amd it'll categorized the link based on the source, like YouTube, Facebook or insta and many other.
+and it'll categorized the link based on the source, like YouTube, Facebook or insta and many other.
