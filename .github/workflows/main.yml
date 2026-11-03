@@ -1,0 +1,109 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+
+      - name: Install Android SDK packages
+        run: |
+          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
+
+          if [ -z "$SDKMANAGER" ]; then
+            echo "ERROR: sdkmanager not found"
+            exit 1
+          fi
+
+          yes | "$SDKMANAGER" --licenses || true
+
+          "$SDKMANAGER" --install \
+            "platform-tools" \
+            "platforms;android-35" \
+            "platforms;android-36" \
+            "build-tools;35.0.0" \
+            "build-tools;36.0.0"
+
+      - name: Find and extract ZIP
+        run: |
+          ZIP_FILE=$(find . -type f -iname "*.zip" \
+            -not -path "./.git/*" | head -n 1)
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ERROR: No ZIP file found"
+            exit 1
+          fi
+
+          echo "Found project: $ZIP_FILE"
+          mkdir -p app-source
+          unzip -q "$ZIP_FILE" -d app-source
+
+      - name: Find Android project
+        run: |
+          SETTINGS=$(find app-source -type f \( \
+            -name settings.gradle \
+            -o -name settings.gradle.kts \
+          \) | head -n 1)
+
+          if [ -z "$SETTINGS" ]; then
+            echo "ERROR: Gradle settings file not found"
+            find app-source -maxdepth 4 -type f
+            exit 1
+          fi
+
+          PROJECT_DIR=$(dirname "$SETTINGS")
+          echo "Project directory: $PROJECT_DIR"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+
+      - name: Generate debug keystore
+        run: |
+          mkdir -p app-source
+
+          if [ ! -f app-source/debug.keystore ]; then
+            keytool -genkeypair \
+              -v \
+              -keystore app-source/debug.keystore \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          else
+            echo "Debug keystore already exists. Skipping generation."
+          fi
+
+      - name: Build APK
+        run: |
+          cd "$PROJECT_DIR"
+          gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LinkVault-debug-APK
+          path: app-source/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
