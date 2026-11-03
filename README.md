@@ -1,3 +1,4 @@
+
 LinkVault
 
 A simple little place for all those links you want to come back to.
@@ -12,6 +13,8 @@ Features
 - Mark links as favorites.
 - Search saved links.
 - Clean Material 3 interface.
+
+  <img width="1080" height="2400" alt="1924" src="https://github.com/user-attachments/assets/f7536745-e1f6-47b1-9c2a-377ba6e5949d" />
 
 <img width="1080" height="2400" alt="1925" src="https://github.com/user-attachments/assets/cc5b83be-b0a9-4312-a6b3-cb19e27d56f2" />
 
